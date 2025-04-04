@@ -8,7 +8,7 @@ env:
   defconfig: |
     dipper_defconfig
   kernel_patch: |
-    
+    10_enable_susfs_for_ksu.patch
   kernelsu_patch: |
 
 on: [ push, pull_request ]
