@@ -20,16 +20,12 @@ on:
 jobs:
   build:
     name: Build kernel
-    needs: check_kernelsu_update
-    if: inputs.allow_rebuild || needs.check_kernelsu_update.outputs.local_version != needs.check_kernelsu_update.outputs.remote_version
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
       - name: Set env
         run: |
-          echo kernelsu_remote_version=${{ needs.check_kernelsu_update.outputs.remote_version }} | tee -a $GITHUB_ENV
-
           if [[ "$clang_version" = "r"* ]] || [[ "$clang_version" = "latest" ]]; then
               clang_type=aosp
           else
@@ -213,7 +209,6 @@ jobs:
       - name: Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ env.kernelsu_remote_version }}
           body: |
             Device:
             ${{ env.device }}
@@ -223,8 +218,6 @@ jobs:
 
             Branch:
             ${{ env.kernel_branch }}
-
-            KernelSU:
-            https://github.com/tiann/KernelSU/releases/tag/${{ env.kernelsu_remote_version }}
+            
           files: |
             boot.zip
