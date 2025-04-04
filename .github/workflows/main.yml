@@ -66,10 +66,10 @@ jobs:
         run: |
           curl -LSs "https://raw.githubusercontent.com/rifsxd/KernelSU-Next/next-susfs/kernel/setup.sh" | bash -s next-susfs
           cp this-repo/patches/KernelSU/10_enable_susfs_for_ksu.patch KernelSU-Next/
-          cp this-repo/patches/50_add_susfs_in_kernel-4.9.patch .
+          cp this-repo/patches/50_add_susfs_in_kernel-4.9.patch ./
           cp this-repo/patches/fs/susfs.c fs/
           cp this-repo/patches/include/linux/susfs.h include/linux/
-          patch -p1 < 50_add_susfs_in_kernel.patch
+          patch -p1 < 50_add_susfs_in_kernel-4.9.patch
           cd KernelSU-Next && patch -p1 < 10_enable_susfs_for_ksu.patch
           cd ..
           
