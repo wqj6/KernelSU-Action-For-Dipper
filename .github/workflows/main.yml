@@ -4,7 +4,7 @@ env:
   kernel_repository: LineageOS/android_kernel_xiaomi_sdm845
   kernel_branch: lineage-22.1
   device: dipper
-  clang_version: r416183b
+  clang_version: r365631c
   defconfig: |
     sdm845-perf_defconfig
   kernel_patch: |
