@@ -12,31 +12,12 @@ env:
   kernelsu_patch: |
 
 on:
-  schedule:
-    - cron: "50 9,21 * * *"
-  workflow_dispatch:
-    inputs:
-      allow_rebuild:
-        description: "Allow Rebuild"
-        type: boolean
-        default: false
+  push:
+    branches: [ $default-branch ]
+  pull_request:
+    branches: [ $default-branch ]
 
 jobs:
-  check_kernelsu_update:
-    name: Check KernelSU update
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check KernelSU version
-        id: check_kernelsu_version
-        run: |
-          local_version=$(curl -L --header 'authorization: Bearer ${{ github.token }}' https://api.github.com/repos/${{ github.repository }}/releases/latest | jq -r .tag_name)
-          remote_version=$(curl -L https://api.github.com/repos/tiann/KernelSU/releases/latest | jq -r .tag_name)
-          echo local_version=$local_version | tee -a $GITHUB_OUTPUT
-          echo remote_version=$remote_version | tee -a $GITHUB_OUTPUT
-    outputs:
-      local_version: ${{ steps.check_kernelsu_version.outputs.local_version }}
-      remote_version: ${{ steps.check_kernelsu_version.outputs.remote_version }}
-
   build:
     name: Build kernel
     needs: check_kernelsu_update
