@@ -4,13 +4,9 @@ env:
   kernel_repository: LineageOS/android_kernel_xiaomi_sdm845
   kernel_branch: lineage-22.1
   device: dipper
-  clang_version: r365631c
+  clang_version: r416183b
   defconfig: |
     dipper_defconfig
-  kernel_patch: |
-    
-  kernelsu_patch: |
-    10_enable_susfs_for_ksu.patch
 
 on: [ push, pull_request ]
 
@@ -54,9 +50,7 @@ jobs:
           path: this-repo
       
       - name: 复制自定义配置
-        run: |
-          KERNEL_SOURCE_DIR=$(echo "${{ env.kernel_repository }}" | awk -F '/' '{print $2}')
-          cp "$GITHUB_WORKSPACE/this-repo/dipper_defconfig" arch/arm64/configs/
+        run: cp this-repo/dipper_defconfig arch/arm64/configs/
       
       - name: 生成defconfig
         run: |
@@ -71,32 +65,14 @@ jobs:
       - name: 设置 KernelSU Next
         run: |
           curl -LSs "https://raw.githubusercontent.com/rifsxd/KernelSU-Next/next-susfs/kernel/setup.sh" | bash -s next-susfs
-          # https://kernelsu.org/zh_CN/guide/how-to-integrate-for-non-gki.html
-          # curl -L https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh | bash -s -- $kernelsu_remote_version
-          # echo 'CONFIG_KPROBES=y' >>arch/arm64/configs/merged_defconfig
-          # echo 'CONFIG_HAVE_KPROBES=y' >>arch/arm64/configs/merged_defconfig
-          # echo 'CONFIG_KPROBE_EVENTS=y' >>arch/arm64/configs/merged_defconfig
-
-      - name: 添加内核补丁
-        run: |
-          while read -r line; do
-              if [ -z "$line" ] || [[ "$line" == "#"* ]]; then
-                  continue
-              fi
-              echo "Applying kernel patch: $line"
-              git apply "this-repo/patches/$line"
-          done <<<"$kernel_patch"
-
-      - name: 添加ksu next补丁
-        run: |
-          while read -r line; do
-              if [ -z "$line" ] || [[ "$line" == "#"* ]]; then
-                  continue
-              fi
-              echo "Applying KernelSU patch: $line"
-              git apply -p2 --directory KernelSU/kernel "this-repo/patches/$line"
-          done <<<"$kernelsu_patch"
-
+          cp this-repo/patches/KernelSU/10_enable_susfs_for_ksu.patch KernelSU-Next/
+          cp this-repo/patches/50_add_susfs_in_kernel-4.9.patch .
+          cp this-repo/patches/fs/susfs.c fs/
+          cp this-repo/patches/include/linux/susfs.h include/linux/
+          patch -p1 < 50_add_susfs_in_kernel.patch
+          cd KernelSU-Next && patch -p1 < 10_enable_susfs_for_ksu.patch
+          cd ..
+          
       - name: "AOSP-Clang: Restore"
         id: aosp_clang_restore
         if: env.clang_type == 'aosp'
