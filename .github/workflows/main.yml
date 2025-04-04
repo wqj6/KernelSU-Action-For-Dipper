@@ -98,8 +98,9 @@ jobs:
               cat arch/arm64/configs/$line >>arch/arm64/configs/merged_defconfig
           done <<<"$defconfig"
 
-      # - name: Setup KernelSU 
-        # run: |
+      - name: Setup KernelSU Next
+        run: |
+          curl -LSs "https://raw.githubusercontent.com/rifsxd/KernelSU-Next/next-susfs/kernel/setup.sh" | bash -s next-susfs
           # https://kernelsu.org/zh_CN/guide/how-to-integrate-for-non-gki.html
           # curl -L https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh | bash -s -- $kernelsu_remote_version
           # echo 'CONFIG_KPROBES=y' >>arch/arm64/configs/merged_defconfig
