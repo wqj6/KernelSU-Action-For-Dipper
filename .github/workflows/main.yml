@@ -82,7 +82,7 @@ jobs:
       - name: Copy Custom Config to Kernel Source
         run: |
           KERNEL_SOURCE_DIR=$(echo "${{ env.kernel_repository }}" | awk -F '/' '{print $2}')
-          cp dipper_defconfig "${KERNEL_SOURCE_DIR}/arch/arm64/configs/"
+          cp /home/runner/work/KernelSU-Action-For-Dipper/KernelSU-Action-For-Dipper/dipper_defconfig "${KERNEL_SOURCE_DIR}/arch/arm64/configs/"
 
       - name: Get latest kernel commit id
         run: |
