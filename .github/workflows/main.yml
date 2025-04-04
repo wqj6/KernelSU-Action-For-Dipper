@@ -6,7 +6,7 @@ env:
   device: dipper
   clang_version: r365631c
   defconfig: |
-    sdm845-perf_defconfig
+    dipper_defconfig
   kernel_patch: |
     
   kernelsu_patch: |
@@ -78,6 +78,11 @@ jobs:
         uses: actions/checkout@v4
         with:
           path: this-repo
+      
+      - name: Copy Custom Config to Kernel Source
+        run: |
+          KERNEL_SOURCE_DIR=$(echo "${{ env.kernel_repository }}" | awk -F '/' '{print $2}')
+          cp dipper_defconfig "${KERNEL_SOURCE_DIR}/arch/arm64/configs/"
 
       - name: Get latest kernel commit id
         run: |
