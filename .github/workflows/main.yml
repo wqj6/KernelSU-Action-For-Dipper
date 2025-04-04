@@ -1,4 +1,4 @@
-name: Check and Build
+name: 构建
 
 env:
   kernel_repository: LineageOS/android_kernel_xiaomi_sdm845
@@ -11,20 +11,16 @@ env:
     
   kernelsu_patch: |
 
-on:
-  push:
-    branches: [ $default-branch ]
-  pull_request:
-    branches: [ $default-branch ]
+on: [ push, pull_request ]
 
 jobs:
   build:
-    name: Build kernel
+    name: 构建内核
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
-      - name: Set env
+      - name: 设置环境
         run: |
           if [[ "$clang_version" = "r"* ]] || [[ "$clang_version" = "latest" ]]; then
               clang_type=aosp
@@ -38,34 +34,30 @@ jobs:
               echo clang_version=$clang_version | tee -a $GITHUB_ENV
           fi
 
-      - name: Install packages
+      - name: 安装依赖
         run: |
           sudo apt update
           sudo apt install -y \
               binutils-arm-linux-gnueabi \
               binutils-aarch64-linux-gnu
 
-      - name: Checkout kernel source
+      - name: 同步内核源码
         uses: actions/checkout@v4
         with:
           repository: ${{ env.kernel_repository }}
           ref: ${{ env.kernel_branch }}
 
-      - name: Checkout this repo
+      - name: 同步本仓库
         uses: actions/checkout@v4
         with:
           path: this-repo
       
-      - name: Copy Custom Config to Kernel Source
+      - name: 复制自定义配置
         run: |
           KERNEL_SOURCE_DIR=$(echo "${{ env.kernel_repository }}" | awk -F '/' '{print $2}')
           cp "$GITHUB_WORKSPACE/this-repo/dipper_defconfig" arch/arm64/configs/
-
-      - name: Get latest kernel commit id
-        run: |
-          echo kernel_commit_id=$(git rev-parse HEAD) | tee -a $GITHUB_ENV
-
-      - name: Merge defconfig
+      
+      - name: 生成defconfig
         run: |
           while read -r line; do
               if [ -z "$line" ] || [[ "$line" == "#"* ]]; then
@@ -75,7 +67,7 @@ jobs:
               cat arch/arm64/configs/$line >>arch/arm64/configs/merged_defconfig
           done <<<"$defconfig"
 
-      - name: Setup KernelSU Next
+      - name: 设置 KernelSU Next
         run: |
           curl -LSs "https://raw.githubusercontent.com/rifsxd/KernelSU-Next/next-susfs/kernel/setup.sh" | bash -s next-susfs
           # https://kernelsu.org/zh_CN/guide/how-to-integrate-for-non-gki.html
@@ -84,7 +76,7 @@ jobs:
           # echo 'CONFIG_HAVE_KPROBES=y' >>arch/arm64/configs/merged_defconfig
           # echo 'CONFIG_KPROBE_EVENTS=y' >>arch/arm64/configs/merged_defconfig
 
-      - name: Apply kernel patch
+      - name: 添加内核补丁
         run: |
           while read -r line; do
               if [ -z "$line" ] || [[ "$line" == "#"* ]]; then
@@ -94,7 +86,7 @@ jobs:
               git apply "this-repo/patches/$line"
           done <<<"$kernel_patch"
 
-      - name: Apply KernelSU patch
+      - name: 添加ksu next补丁
         run: |
           while read -r line; do
               if [ -z "$line" ] || [[ "$line" == "#"* ]]; then
@@ -147,7 +139,7 @@ jobs:
           curl -L https://apt.llvm.org/llvm.sh | sudo bash -s -- $clang_version
           echo PATH=/usr/lib/llvm-$clang_version/bin:$PATH | tee -a $GITHUB_ENV
 
-      - name: export flags
+      - name: 配置编译变量
         run: |
           echo flags=" \
           O=out \
@@ -158,11 +150,11 @@ jobs:
           CROSS_COMPILE_ARM32=arm-linux-gnueabi-
           " | tee -a $GITHUB_ENV
 
-      - name: Make defconfig
+      - name: 生成配置
         run: |
           make $flags merged_defconfig
 
-      - name: Make
+      - name: 构建
         run: |
           make $flags -j$(nproc --all)
 
@@ -200,7 +192,7 @@ jobs:
           rm -rf .git* README.md
           zip -r ../boot.zip *
 
-      - name: "Upload artifact"
+      - name: 上传输出文件
         uses: actions/upload-artifact@v4
         with:
           name: boot
