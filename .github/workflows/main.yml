@@ -70,6 +70,7 @@ jobs:
           cp this-repo/patches/fs/susfs.c fs/
           cp this-repo/patches/include/linux/susfs.h include/linux/
           patch -p1 < 50_add_susfs_in_kernel-4.9.patch
+          cat fs/open.c.rej
           cd KernelSU-Next && patch -p1 < 10_enable_susfs_for_ksu.patch
           cd ..
           
