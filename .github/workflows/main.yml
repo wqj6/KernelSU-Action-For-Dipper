@@ -17,20 +17,6 @@ jobs:
     permissions:
       contents: write
     steps:
-      - name: 设置环境
-        run: |
-          if [[ "$clang_version" = "r"* ]] || [[ "$clang_version" = "latest" ]]; then
-              clang_type=aosp
-          else
-              clang_type=vanilla
-          fi
-          echo clang_type=$clang_type | tee -a $GITHUB_ENV
-
-          if [[ "$clang_version" = "latest" ]]; then
-              clang_version=$(curl -L https://android.googlesource.com/kernel/common/+/refs/heads/android-mainline/build.config.constants | grep -Eo 'r[0-9]{6}[a-z]?[0-9]?')
-              echo clang_version=$clang_version | tee -a $GITHUB_ENV
-          fi
-
       - name: 安装依赖
         run: |
           sudo apt update
@@ -72,7 +58,10 @@ jobs:
           
       - name: 应用ksu susfs补丁
         run: |
-          cd $GITHUB_WORKSPACE/KernelSU-Next && patch -p1 < 10_enable_susfs_for_ksu.patch
+          cd $GITHUB_WORKSPACE/KernelSU-Next && patch -p1 < 10_enable_susfs_for_ksu.patch || true
+          cp this-repo/Makefile KernelSU-Next/kernel/
+          cp this-repo/kernel_compat.h KernelSU-Next/kernel/
+          cp this-repo/ksu.c KernelSU-Next/kernel/
 
       - name: 应用kernel susfs补丁
         run: |
