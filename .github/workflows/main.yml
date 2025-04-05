@@ -51,6 +51,7 @@ jobs:
       - name: 设置 KernelSU
         run: |
           curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -s v0.9.5
+          patch -p1 < $GITHUB_WORKSPACE/this-repo/patches/backport-path-umount.patch
         
           # curl -LSs "https://raw.githubusercontent.com/rifsxd/KernelSU-Next/next/kernel/setup.sh" | bash -
           # curl -LSs "https://raw.githubusercontent.com/rifsxd/KernelSU-Next/next-susfs/kernel/setup.sh" | bash -s next-susfs
@@ -79,14 +80,14 @@ jobs:
 
       - name: "AOSP-Clang: Download"
         id: aosp_clang_download
-        if: env.clang_type == 'aosp' && steps.aosp_clang_restore.outputs.cache-hit != 'true'
+        if: steps.aosp_clang_restore.outputs.cache-hit != 'true'
         run: |
           mkdir -p aosp-clang
           curl -L https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/heads/android11-release/clang-r365631c.tar.gz | tar xz -C aosp-clang
 
       - name: "AOSP-Clang: Save"
         id: aosp_clang_save
-        if: env.clang_type == 'aosp' && steps.aosp_clang_download.outcome == 'success'
+        if: steps.aosp_clang_download.outcome == 'success'
         uses: actions/cache/save@v4
         with:
           path: aosp-clang
@@ -98,14 +99,7 @@ jobs:
 
       - name: 配置编译变量
         run: |
-          echo flags=" \
-          O=out \
-          ARCH=arm64 \
-          LLVM=1 \
-          LLVM_IAS=1 \
-          CROSS_COMPILE=aarch64-linux-gnu- \
-          CROSS_COMPILE_ARM32=arm-linux-gnueabi-
-          " | tee -a $GITHUB_ENV
+          echo flags="O=out ARCH=arm64 LLVM=1 LLVM_IAS=1 CROSS_COMPILE=aarch64-linux-gnu- CROSS_COMPILE_ARM32=arm-linux-gnueabi-" | tee -a $GITHUB_ENV
 
       - name: 生成配置
         run: |
@@ -113,7 +107,7 @@ jobs:
 
       - name: 构建
         run: |
-          make $flags -j$(nproc --all)
+          make $flags -j$(nproc --all) 2>&1
 
       - name: AnyKernel3
         run: |
