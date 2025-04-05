@@ -69,10 +69,13 @@ jobs:
           cp this-repo/patches/50_add_susfs_in_kernel-4.9.patch ./
           cp this-repo/patches/fs/susfs.c fs/
           cp this-repo/patches/include/linux/susfs.h include/linux/
+          
       - name: 应用ksu susfs补丁
+        run: |
           cd $GITHUB_WORKSPACE/KernelSU-Next && patch -p1 < 10_enable_susfs_for_ksu.patch
 
       - name: 应用kernel susfs补丁
+        run: |
           cd $GITHUB_WORKSPACE && patch -p1 <  50_add_susfs_in_kernel-4.9.patch
           
       - name: "AOSP-Clang: Restore"
