@@ -48,9 +48,11 @@ jobs:
               cat arch/arm64/configs/$line >>arch/arm64/configs/merged_defconfig
           done <<<"$defconfig"
 
-      - name: 设置 KernelSU Next
+      - name: 设置 KernelSU
         run: |
-          curl -LSs "https://raw.githubusercontent.com/rifsxd/KernelSU-Next/next/kernel/setup.sh" | bash -
+        curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -s v0.9.5
+        
+          # curl -LSs "https://raw.githubusercontent.com/rifsxd/KernelSU-Next/next/kernel/setup.sh" | bash -
           # curl -LSs "https://raw.githubusercontent.com/rifsxd/KernelSU-Next/next-susfs/kernel/setup.sh" | bash -s next-susfs
           # cp $GITHUB_WORKSPACE/this-repo/patches/KernelSU/10_enable_susfs_for_ksu.patch KernelSU-Next/
           # cp $GITHUB_WORKSPACE/this-repo/patches/50_add_susfs_in_kernel-4.9.patch ./
