@@ -50,22 +50,23 @@ jobs:
 
       - name: 设置 KernelSU Next
         run: |
-          curl -LSs "https://raw.githubusercontent.com/rifsxd/KernelSU-Next/next-susfs/kernel/setup.sh" | bash -s next-susfs
-          cp $GITHUB_WORKSPACE/this-repo/patches/KernelSU/10_enable_susfs_for_ksu.patch KernelSU-Next/
-          cp $GITHUB_WORKSPACE/this-repo/patches/50_add_susfs_in_kernel-4.9.patch ./
-          cp $GITHUB_WORKSPACE/this-repo/patches/fs/susfs.c fs/
-          cp $GITHUB_WORKSPACE/this-repo/patches/include/linux/susfs.h include/linux/
+          curl -LSs "https://raw.githubusercontent.com/rifsxd/KernelSU-Next/next/kernel/setup.sh" | bash -
+          # curl -LSs "https://raw.githubusercontent.com/rifsxd/KernelSU-Next/next-susfs/kernel/setup.sh" | bash -s next-susfs
+          # cp $GITHUB_WORKSPACE/this-repo/patches/KernelSU/10_enable_susfs_for_ksu.patch KernelSU-Next/
+          # cp $GITHUB_WORKSPACE/this-repo/patches/50_add_susfs_in_kernel-4.9.patch ./
+          # cp $GITHUB_WORKSPACE/this-repo/patches/fs/susfs.c fs/
+          # cp $GITHUB_WORKSPACE/this-repo/patches/include/linux/susfs.h include/linux/
           
-      - name: 应用ksu susfs补丁
-        run: |
-          cd $GITHUB_WORKSPACE/KernelSU-Next && patch -p1 < 10_enable_susfs_for_ksu.patch || true
-          cp $GITHUB_WORKSPACE/this-repo/Makefile kernel/
-          cp $GITHUB_WORKSPACE/this-repo/kernel_compat.h kernel/
-          cp $GITHUB_WORKSPACE/this-repo/ksu.c kernel/
+      # - name: 应用ksu susfs补丁
+        # run: |
+          # cd $GITHUB_WORKSPACE/KernelSU-Next && patch -p1 < 10_enable_susfs_for_ksu.patch || true
+          # cp $GITHUB_WORKSPACE/this-repo/Makefile kernel/
+          # cp $GITHUB_WORKSPACE/this-repo/kernel_compat.h kernel/
+          # cp $GITHUB_WORKSPACE/this-repo/ksu.c kernel/
 
-      - name: 应用kernel susfs补丁
-        run: |
-          cd $GITHUB_WORKSPACE && patch -p1 <  50_add_susfs_in_kernel-4.9.patch
+      # - name: 应用kernel susfs补丁
+        # run: |
+          # cd $GITHUB_WORKSPACE && patch -p1 <  50_add_susfs_in_kernel-4.9.patch
           
       - name: "AOSP-Clang: Restore"
         id: aosp_clang_restore
