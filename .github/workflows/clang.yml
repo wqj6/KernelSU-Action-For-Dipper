@@ -4,7 +4,7 @@ on: workflow_dispatch
 jobs:
   Download:
     name: 下载
-    runs-on: ubunti-latest
+    runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
