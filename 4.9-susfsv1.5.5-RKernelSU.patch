@@ -4,9 +4,6 @@ Date: Mon, 7 Apr 2025 20:31:26 +0800
 Subject: [PATCH] Support susfsv1.5.5 for RKernelSU and fix some bugs
 
 ---
- .get_maintainer.ignore                        |    1 +
- .gitattributes                                |    2 +
- .gitignore                                    |  125 +-
  arch/arm64/configs/dipper_defconfig           | 5325 +++++++++++++++++
  drivers/input/input.c                         |   10 +
  drivers/input/sensors/smi130/modules.order    |    0
@@ -65,21 +62,6 @@ Subject: [PATCH] Support susfsv1.5.5 for RKernelSU and fix some bugs
  create mode 100644 include/linux/susfs.h
  create mode 100644 include/linux/susfs_def.h
 
-diff --git a/.get_maintainer.ignore b/.get_maintainer.ignore
-new file mode 100644
-index 000000000..cca6d870f
---- /dev/null
-+++ b/.get_maintainer.ignore
-@@ -0,0 +1 @@
-+Christoph Hellwig <hch@lst.de>
-diff --git a/.gitattributes b/.gitattributes
-new file mode 100644
-index 000000000..89c411b5c
---- /dev/null
-+++ b/.gitattributes
-@@ -0,0 +1,2 @@
-+*.c   diff=cpp
-+*.h   diff=cpp
 diff --git a/arch/arm64/configs/dipper_defconfig b/arch/arm64/configs/dipper_defconfig
 new file mode 100644
 index 000000000..0079a230b
