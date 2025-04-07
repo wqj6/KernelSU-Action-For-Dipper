@@ -8,7 +8,7 @@ env:
   defconfig: |
     dipper_defconfig
 
-on: [ push, pull_request ]
+on: [ push, pull_request, workflow_dispatch ]
 
 jobs:
   build:
@@ -34,42 +34,12 @@ jobs:
         uses: actions/checkout@v4
         with:
           path: this-repo
-      
-      - name: 复制自定义配置
-        run: cp this-repo/dipper_defconfig arch/arm64/configs/
-      
-      - name: 合并defconfig
-        run: |
-          while read -r line; do
-              if [ -z "$line" ] || [[ "$line" == "#"* ]]; then
-                  continue
-              fi
-              echo "Merging defconfig: $line"
-              cat arch/arm64/configs/$line >>arch/arm64/configs/merged_defconfig
-          done <<<"$defconfig"
 
       - name: 设置 KernelSU
         run: |
-          curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -s v0.9.5
-          patch -p1 < $GITHUB_WORKSPACE/this-repo/patches/backport-path-umount.patch
-        
-          # curl -LSs "https://raw.githubusercontent.com/rifsxd/KernelSU-Next/next/kernel/setup.sh" | bash -
-          # curl -LSs "https://raw.githubusercontent.com/rifsxd/KernelSU-Next/next-susfs/kernel/setup.sh" | bash -s next-susfs
-          # cp $GITHUB_WORKSPACE/this-repo/patches/KernelSU/10_enable_susfs_for_ksu.patch KernelSU-Next/
-          # cp $GITHUB_WORKSPACE/this-repo/patches/50_add_susfs_in_kernel-4.9.patch ./
-          # cp $GITHUB_WORKSPACE/this-repo/patches/fs/susfs.c fs/
-          # cp $GITHUB_WORKSPACE/this-repo/patches/include/linux/susfs.h include/linux/
-          
-      # - name: 应用ksu susfs补丁
-        # run: |
-          # cd $GITHUB_WORKSPACE/KernelSU-Next && patch -p1 < 10_enable_susfs_for_ksu.patch || true
-          # cp $GITHUB_WORKSPACE/this-repo/Makefile kernel/
-          # cp $GITHUB_WORKSPACE/this-repo/kernel_compat.h kernel/
-          # cp $GITHUB_WORKSPACE/this-repo/ksu.c kernel/
-
-      # - name: 应用kernel susfs补丁
-        # run: |
-          # cd $GITHUB_WORKSPACE && patch -p1 <  50_add_susfs_in_kernel-4.9.patch
+          curl -LSs "https://raw.githubusercontent.com/rsuntk/KernelSU/main/kernel/setup.sh" | bash -s susfs-v1.5.5
+          cp $GITHUB_WORKSPACE/this-repo/files/* $GITHUB_WORKSPACE/ -r
+          patch -p1 < $GITHUB_WORKSPACE/this-repo/4.9-susfsv1.5.5-RKernelSU.patch
           
       - name: "AOSP-Clang: Restore"
         id: aosp_clang_restore
@@ -107,7 +77,7 @@ jobs:
 
       - name: 构建
         run: |
-          make $flags -j$(nproc --all) 2>&1
+          make $flags -j$(nproc --all) 1> /dev/null
 
       - name: AnyKernel3
         run: |
