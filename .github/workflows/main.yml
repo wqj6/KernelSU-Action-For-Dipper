@@ -72,7 +72,7 @@ jobs:
 
       - name: 生成配置
         run: |
-          make $flags merged_defconfig
+          make $flags ${{ env.defconfig }}
 
       - name: 构建
         run: |
