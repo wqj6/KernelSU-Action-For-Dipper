@@ -24,38 +24,38 @@ jobs:
         id: aosp_clang_restore
         uses: actions/cache/restore@v4
         with:
-          path: ~/aosp-clang
+          path: /home/runner/aosp-clang
           key: aosp-clang-${{ env.clang_version }}
 
       - name: "AOSP-Clang: Download"
         id: aosp_clang_download
         if: steps.aosp_clang_restore.outputs.cache-hit != 'true'
         run: |
-          mkdir ~/aosp-clang
-          curl -L https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/heads/android11-release/clang-r365631c.tar.gz | tar xz -C ~/aosp-clang
+          mkdir /home/runner/aosp-clang
+          curl -L https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/heads/android11-release/clang-r365631c.tar.gz | tar xz -C /home/runner/aosp-clang
 
       - name: "AOSP-Clang: Save"
         id: aosp_clang_save
         if: steps.aosp_clang_download.outcome == 'success'
         uses: actions/cache/save@v4
         with:
-          path: ~/aosp-clang
+          path: /home/runner/aosp-clang
           key: aosp-clang-${{ env.clang_version }}
 
       - name: "AOSP-Clang: Setup"
         run: |
-          echo PATH=~/aosp-clang/bin:$PATH | tee -a $GITHUB_ENV
+          echo PATH=/home/runner/aosp-clang/bin:$PATH | tee -a $GITHUB_ENV
 
       - name: AnyKernel3
         uses: actions/checkout@v4
         with:
           repository: osm0sis/AnyKernel3
           ref: master
-          path: ~/Anykernel3
+          path: /home/runner/Anykernel3
       
       - name: Setup Anykernel3
         run: |
-          cat >anykernel.sh <<EOF
+          cat >/home/runner/Anykernel3/anykernel.sh <<EOF
           properties() { '
           kernel.string=$kernel_repository $kernel_branch for $device
           do.devicecheck=1
@@ -78,7 +78,7 @@ jobs:
       - name: 同步本仓库
         uses: actions/checkout@v4
         with:
-          path: ~/this-repo
+          path: /home/runner/this-repo
 
       - name: 同步内核源码
         uses: actions/checkout@v4
