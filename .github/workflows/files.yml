@@ -21,8 +21,8 @@ jobs:
           files: |
             clang-r365631c.tar.gz
   Kernel-Source:
-    name:下载
-    runs-on: ubuntu-latest
+    name: Do
+    runs-on: ubuntu
     permissions:
       contents: write 
     steps:
