@@ -1,0 +1,45 @@
+name: 获取文件
+
+on: workflow_dispatch 
+
+jobs:
+  Download:
+    name: 下载
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: 下载
+        run: curl https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/heads/android11-release/clang-r365631c.tar.gz -o clang-r365631c.tar.gz
+
+      - name: 上传
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: Get Clang
+          body: |
+          
+          files: |
+            clang-r365631c.tar.gz
+  Kernel-Source:
+    name:下载
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write 
+    steps:
+      - name: 同步内核源码
+        uses: actions/checkout@v4
+        with:
+          repository: LineageOS/android_kernel_xiaomi_sdm845
+          ref: lineage-22.1
+          path: kernel
+      - name: 压缩
+        run: |
+          zip -r kernel.zip kernel/
+      - name: 上传
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: Kernel Source 
+          body: |
+          
+          files: |
+            ketnel.zip
