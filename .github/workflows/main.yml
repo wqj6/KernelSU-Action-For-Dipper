@@ -51,11 +51,11 @@ jobs:
         with:
           repository: osm0sis/AnyKernel3
           ref: master
-          path: Anykernel3
+          path: AnyKernel3
       
       - name: Setup Anykernel3
         run: |
-          cat >Anykernel3/anykernel.sh <<EOF
+          cat >AnyKernel3/anykernel.sh <<EOF
           properties() { '
           kernel.string=$kernel_repository $kernel_branch for $device
           do.devicecheck=1
