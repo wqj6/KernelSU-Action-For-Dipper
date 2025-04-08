@@ -100,6 +100,7 @@ jobs:
         run: |
           cd $GITHUB_WORKSPACE/kernel
           echo flags="O=out ARCH=arm64 LLVM=1 LLVM_IAS=1 CROSS_COMPILE=aarch64-linux-gnu- CROSS_COMPILE_ARM32=arm-linux-gnueabi-" | tee -a $GITHUB_ENV
+          export flags="O=out ARCH=arm64 LLVM=1 LLVM_IAS=1 CROSS_COMPILE=aarch64-linux-gnu- CROSS_COMPILE_ARM32=arm-linux-gnueabi-"
           make $flags dipper_defconfig
           make $flags -j$(nproc --all) 1> /dev/null
 
