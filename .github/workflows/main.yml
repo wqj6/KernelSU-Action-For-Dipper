@@ -38,6 +38,9 @@ jobs:
       - name: 设置 KernelSU
         run: |
           curl -LSs "https://raw.githubusercontent.com/rsuntk/KernelSU/main/kernel/setup.sh" | bash -s susfs-v1.5.5
+          cp $GITHUB_WORKSPACE/this-repo/dipper_defconfig arch/arm64/configs/
+          cp $GITHUB_WORKSPACE/this-repo/susfs_files/* ./
+          git apply $GITHUB_WORKSPACE/this-repo/0001-susfs1.5.5-ksu-4.9.patch
           
           
       - name: "AOSP-Clang: Restore"
