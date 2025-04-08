@@ -15,14 +15,14 @@ jobs:
       - name: 上传
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: Get Clang
+          tag_name: GetClang
           body: |
           
           files: |
             clang-r365631c.tar.gz
   Kernel-Source:
     name: Do
-    runs-on: ubuntu
+    runs-on: ubuntu-latest
     permissions:
       contents: write 
     steps:
@@ -38,7 +38,7 @@ jobs:
       - name: 上传
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: Kernel Source 
+          tag_name: KernelSource 
           body: |
           
           files: |
