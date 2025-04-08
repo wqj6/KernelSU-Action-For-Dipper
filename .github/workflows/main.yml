@@ -55,7 +55,6 @@ jobs:
       
       - name: Setup Anykernel3
         run: |
-          rm -rf $GITHUB_WORKSPACE/AnyKernel3/.git* $GITHUB_WORKSPACE/AnyKernel3/README.md $GITHUB_WORKSPACE/LICENSE
           cat >Anykernel3/anykernel.sh <<EOF
           properties() { '
           kernel.string=$kernel_repository $kernel_branch for $device
@@ -100,7 +99,7 @@ jobs:
         run: |
           cd $GITHUB_WORKSPACE/kernel
           echo flags="O=out ARCH=arm64 LLVM=1 LLVM_IAS=1 CROSS_COMPILE=aarch64-linux-gnu- CROSS_COMPILE_ARM32=arm-linux-gnueabi-" | tee -a $GITHUB_ENV
-          export flags="O=out ARCH=arm64 LLVM=1 LLVM_IAS=1 CROSS_COMPILE=aarch64-linux-gnu- CROSS_COMPILE_ARM32=arm-linux-gnueabi-"
+          flags="O=out ARCH=arm64 LLVM=1 LLVM_IAS=1 CROSS_COMPILE=aarch64-linux-gnu- CROSS_COMPILE_ARM32=arm-linux-gnueabi-"
           make $flags dipper_defconfig
           make $flags -j$(nproc --all) 1> /dev/null
 
