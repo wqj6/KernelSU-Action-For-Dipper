@@ -24,14 +24,14 @@ jobs:
         id: aosp_clang_restore
         uses: actions/cache/restore@v4
         with:
-          path: /home/runner/aosp-clang
+          path: aosp-clang
           key: aosp-clang-${{ env.clang_version }}
 
       - name: "AOSP-Clang: Download"
         id: aosp_clang_download
         if: steps.aosp_clang_restore.outputs.cache-hit != 'true'
         run: |
-          mkdir /home/runner/aosp-clang
+          mkdir aosp-clang
           curl -L https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/heads/android11-release/clang-r365631c.tar.gz | tar xz -C /home/runner/aosp-clang
 
       - name: "AOSP-Clang: Save"
@@ -39,23 +39,24 @@ jobs:
         if: steps.aosp_clang_download.outcome == 'success'
         uses: actions/cache/save@v4
         with:
-          path: /home/runner/aosp-clang
+          path: aosp-clang
           key: aosp-clang-${{ env.clang_version }}
 
       - name: "AOSP-Clang: Setup"
         run: |
-          echo PATH=/home/runner/aosp-clang/bin:$PATH | tee -a $GITHUB_ENV
+          echo PATH=$GITHUB_WORKSPACE/aosp-clang/bin:$PATH | tee -a $GITHUB_ENV
 
       - name: AnyKernel3
         uses: actions/checkout@v4
         with:
           repository: osm0sis/AnyKernel3
           ref: master
-          path: /home/runner/Anykernel3
+          path: Anykernel3
       
       - name: Setup Anykernel3
         run: |
-          cat >/home/runner/Anykernel3/anykernel.sh <<EOF
+          rm -rf $GITHUB_WORKSPACE/AnyKernel3/.git* $GITHUB_WORKSPACE/AnyKernel3/README.md $GITHUB_WORKSPACE/LICENSE
+          cat >Anykernel3/anykernel.sh <<EOF
           properties() { '
           kernel.string=$kernel_repository $kernel_branch for $device
           do.devicecheck=1
@@ -78,34 +79,36 @@ jobs:
       - name: 同步本仓库
         uses: actions/checkout@v4
         with:
-          path: /home/runner/this-repo
+          path: this-repo
 
       - name: 同步内核源码
         uses: actions/checkout@v4
         with:
           repository: ${{ env.kernel_repository }}
           ref: ${{ env.kernel_branch }}
+          path: kernel
 
       - name: 设置 RissuKernelSU
         run: |
+          cd $GITHUB_WORKSPACE/kernel
           curl -LSs "https://raw.githubusercontent.com/rsuntk/KernelSU/main/kernel/setup.sh" | bash -s susfs-v1.5.5
-          cp ~/this-repo/dipper_defconfig arch/arm64/configs/
-          cp ~/this-repo/susfs_files/* ./ -r
-          patch -p1 < ~/this-repo/0001-susfs1.5.5-ksu-4.9.patch
+          cp $GITHUB_WORKSPACE/this-repo/dipper_defconfig arch/arm64/configs/
+          cp $GITHUB_WORKSPACE/this-repo/susfs_files/* ./ -r
+          patch -p1 < $GITHUB_WORKSPACE/this-repo/0001-susfs1.5.5-ksu-4.9.patch
 
       - name: 构建RissuKernelSU
         run: |
+          cd $GITHUB_WORKSPACE/kernel
           echo flags="O=out ARCH=arm64 LLVM=1 LLVM_IAS=1 CROSS_COMPILE=aarch64-linux-gnu- CROSS_COMPILE_ARM32=arm-linux-gnueabi-" | tee -a $GITHUB_ENV
           make $flags dipper_defconfig
           make $flags -j$(nproc --all) 1> /dev/null
 
-          cp out/arch/arm64/boot/Image.gz-dtb ~/AnyKernel3/
+          cp out/arch/arm64/boot/Image.gz-dtb $GITHUB_WORKSPACE/AnyKernel3/
           if [ -f out/arch/arm64/boot/dtbo.img ]; then
-              cp out/arch/arm64/boot/dtbo.img ~/AnyKernel3/
+              cp out/arch/arm64/boot/dtbo.img $GITHUB_WORKSPACE/AnyKernel3/
           fi
           
-          rm -rf ~/AnyKernel3/.git* ~/AnyKernel3/README.md ~/LICENSE
-          zip -r ~/4.9-RissuKernelSU-susfs1.5.5.zip ~/AnyKernel3/*
+          zip -r $GITHUB_WORKSPACE/4.9-RissuKernelSU-susfs1.5.5.zip $GITHUB_WORKSPACE/AnyKernel3/*
 
 #       - name: 上传输出文件
 #         uses: actions/upload-artifact@v4
@@ -123,4 +126,4 @@ jobs:
             Branch: ${{ env.kernel_branch }}
             
           files: |
-            ~/4.9-RissuKernelSU-susfs1.5.5.zip
+            $GITHUB_WORKSPACE/4.9-RissuKernelSU-susfs1.5.5.zip
