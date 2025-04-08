@@ -52,6 +52,8 @@ jobs:
           repository: osm0sis/AnyKernel3
           ref: master
           path: ~/Anykernel3
+      
+      - name: Setup Anykernel3
         run: |
           cat >anykernel.sh <<EOF
           properties() { '
