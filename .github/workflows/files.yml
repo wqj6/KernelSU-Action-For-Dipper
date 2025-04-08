@@ -42,4 +42,4 @@ jobs:
           body: |
           
           files: |
-            ketnel.zip
+            kernel.zip
