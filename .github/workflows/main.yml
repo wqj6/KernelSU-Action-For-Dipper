@@ -8,7 +8,7 @@ env:
   defconfig: |
     dipper_defconfig
 
-on: [ push, pull_request, workflow_dispatch ]
+on: workflow_dispatch 
 
 jobs:
   build:
@@ -38,7 +38,7 @@ jobs:
       - name: 设置 KernelSU
         run: |
           curl -LSs "https://raw.githubusercontent.com/rsuntk/KernelSU/main/kernel/setup.sh" | bash -s susfs-v1.5.5
-          patch -p1 < $GITHUB_WORKSPACE/this-repo/4.9-susfsv1.5.5-RKernelSU.patch || true
+          
           
       - name: "AOSP-Clang: Restore"
         id: aosp_clang_restore
