@@ -89,7 +89,7 @@ jobs:
           curl -LSs "https://raw.githubusercontent.com/rsuntk/KernelSU/main/kernel/setup.sh" | bash -s susfs-v1.5.5
           cp ~/this-repo/dipper_defconfig arch/arm64/configs/
           cp ~/this-repo/susfs_files/* ./ -r
-          git apply ~/this-repo/0001-susfs1.5.5-ksu-4.9.patch
+          patch -p1 < ~/this-repo/0001-susfs1.5.5-ksu-4.9.patch
 
       - name: 构建RissuKernelSU
         run: |
