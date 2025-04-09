@@ -92,6 +92,7 @@ jobs:
           cp $GITHUB_WORKSPACE/this-repo/dipper_defconfig arch/arm64/configs/
           cp $GITHUB_WORKSPACE/this-repo/susfs_files/* ./ -r
           patch -p1 < $GITHUB_WORKSPACE/this-repo/susfs1.5.5-ksu-4.9.patch
+          git add . && git commit -m "clean working tree"
 
       - name: 构建RissuKernelSU
         run: |
@@ -123,6 +124,7 @@ jobs:
           cp $GITHUB_WORKSPACE/this-repo/susfs_files/* ./ -r
           patch -p1 < $GITHUB_WORKSPACE/this-repo/susfs1.5.5-ksu-4.9.patch
           patch -p1 < $GITHUB_WORKSPACE/this-repo/sucompat.c.diff
+          git add . && git commit -m "clean working tree"
 
       - name: 构建KernelSUNext
         run: |
@@ -152,6 +154,7 @@ jobs:
           cp $GITHUB_WORKSPACE/this-repo/susfs_files/* ./ -r
           patch -p1 < $GITHUB_WORKSPACE/this-repo/susfs1.5.5-ksu-4.9.patch
           patch -p1 < $GITHUB_WORKSPACE/this-repo/susfs-ksu0.9.5.patch
+          git add . && git commit -m "clean working tree"
 
       - name: 构建KernelSU
         run: |
