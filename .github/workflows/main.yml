@@ -109,6 +109,37 @@ jobs:
           fi
           
           zip -r $GITHUB_WORKSPACE/4.9-RissuKernelSU-susfs1.5.5.zip $GITHUB_WORKSPACE/AnyKernel3/*
+          cd $GITHUB_WORKSPACE
+          
+      - name: 同步内核源码
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.kernel_repository }}
+          ref: ${{ env.kernel_branch }}
+          path: kernel
+
+      - name: 设置 KernelSUNext
+        run: |
+          cd $GITHUB_WORKSPACE/kernel
+          curl -LSs "https://raw.githubusercontent.com/rifsxd/KernelSU-Next/next-susfs/kernel/setup.sh" | bash -s next-susfs
+          cp $GITHUB_WORKSPACE/this-repo/dipper_defconfig arch/arm64/configs/
+          cp $GITHUB_WORKSPACE/this-repo/susfs_files/* ./ -r
+          patch -p1 < $GITHUB_WORKSPACE/this-repo/0001-susfs1.5.5-ksu-4.9.patch
+
+      - name: 构建KernelSUNext
+        run: |
+          cd $GITHUB_WORKSPACE/kernel
+          echo flags="O=out ARCH=arm64 LLVM=1 LLVM_IAS=1 CROSS_COMPILE=aarch64-linux-gnu- CROSS_COMPILE_ARM32=arm-linux-gnueabi-" | tee -a $GITHUB_ENV
+          flags="O=out ARCH=arm64 LLVM=1 LLVM_IAS=1 CROSS_COMPILE=aarch64-linux-gnu- CROSS_COMPILE_ARM32=arm-linux-gnueabi-"
+          make $flags dipper_defconfig
+          make $flags -j$(nproc --all) 1> /dev/null
+
+          cp out/arch/arm64/boot/Image.gz-dtb $GITHUB_WORKSPACE/AnyKernel3/
+          if [ -f out/arch/arm64/boot/dtbo.img ]; then
+              cp out/arch/arm64/boot/dtbo.img $GITHUB_WORKSPACE/AnyKernel3/
+          fi
+          
+          zip -r $GITHUB_WORKSPACE/4.9-KernelSUNext-susfs1.5.5.zip $GITHUB_WORKSPACE/AnyKernel3/*
 
 #       - name: 上传输出文件
 #         uses: actions/upload-artifact@v4
@@ -127,3 +158,4 @@ jobs:
             
           files: |
             $GITHUB_WORKSPACE/4.9-RissuKernelSU-susfs1.5.5.zip
+            $GITHUB_WORKSPACE/4.9-KernelSUNext-susfs1.5.5.zip
