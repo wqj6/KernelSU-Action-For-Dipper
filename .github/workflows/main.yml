@@ -42,19 +42,17 @@ jobs:
           path: aosp-clang
           key: aosp-clang-${{ env.clang_version }}
 
-      - name: "AOSP-Clang: Setup"
-        run: |
-          echo PATH=$GITHUB_WORKSPACE/aosp-clang/bin:$PATH | tee -a $GITHUB_ENV
-
       - name: AnyKernel3
         uses: actions/checkout@v4
         with:
           repository: osm0sis/AnyKernel3
           ref: master
           path: AnyKernel3
-      
-      - name: Setup AnyKernel3
+
+      - name: "Env: Setup"
         run: |
+          echo flags="O=out ARCH=arm64 LLVM=1 LLVM_IAS=1 CROSS_COMPILE=aarch64-linux-gnu- CROSS_COMPILE_ARM32=arm-linux-gnueabi-" | tee -a $GITHUB_ENV
+          echo PATH=$GITHUB_WORKSPACE/aosp-clang/bin:$PATH | tee -a $GITHUB_ENV
           cat >AnyKernel3/anykernel.sh <<EOF
           properties() { '
           kernel.string=$kernel_repository $kernel_branch for $device
@@ -98,8 +96,7 @@ jobs:
       - name: 构建RissuKernelSU
         run: |
           cd $GITHUB_WORKSPACE/kernel
-          echo flags="O=out ARCH=arm64 LLVM=1 LLVM_IAS=1 CROSS_COMPILE=aarch64-linux-gnu- CROSS_COMPILE_ARM32=arm-linux-gnueabi-" | tee -a $GITHUB_ENV
-          flags="O=out ARCH=arm64 LLVM=1 LLVM_IAS=1 CROSS_COMPILE=aarch64-linux-gnu- CROSS_COMPILE_ARM32=arm-linux-gnueabi-"
+          
           make $flags dipper_defconfig
           make $flags -j$(nproc --all) 1> /dev/null
 
@@ -125,12 +122,11 @@ jobs:
           cp $GITHUB_WORKSPACE/this-repo/dipper_defconfig arch/arm64/configs/
           cp $GITHUB_WORKSPACE/this-repo/susfs_files/* ./ -r
           patch -p1 < $GITHUB_WORKSPACE/this-repo/0001-susfs1.5.5-ksu-4.9.patch
+          patch -p1 < $GITHUB_WORKSPACE/this-repo/sucompat.c.diff
 
       - name: 构建KernelSUNext
         run: |
           cd $GITHUB_WORKSPACE/kernel
-          echo flags="O=out ARCH=arm64 LLVM=1 LLVM_IAS=1 CROSS_COMPILE=aarch64-linux-gnu- CROSS_COMPILE_ARM32=arm-linux-gnueabi-" | tee -a $GITHUB_ENV
-          flags="O=out ARCH=arm64 LLVM=1 LLVM_IAS=1 CROSS_COMPILE=aarch64-linux-gnu- CROSS_COMPILE_ARM32=arm-linux-gnueabi-"
           make $flags dipper_defconfig
           make $flags -j$(nproc --all) 1> /dev/null
 
