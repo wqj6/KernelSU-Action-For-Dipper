@@ -142,6 +142,8 @@ jobs:
 #         with:
 #           name: boot
 #           path: AnyKernel3-master/*
+      - name: 列出工作区文件
+        run: ls -la $GITHUB_WORKSPACE
 
       - name: Release
         uses: softprops/action-gh-release@v2
