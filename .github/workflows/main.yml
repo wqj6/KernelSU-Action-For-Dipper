@@ -91,7 +91,7 @@ jobs:
           curl -LSs "https://raw.githubusercontent.com/rsuntk/KernelSU/main/kernel/setup.sh" | bash -s susfs-v1.5.5
           cp $GITHUB_WORKSPACE/this-repo/dipper_defconfig arch/arm64/configs/
           cp $GITHUB_WORKSPACE/this-repo/susfs_files/* ./ -r
-          patch -p1 < $GITHUB_WORKSPACE/this-repo/0001-susfs1.5.5-ksu-4.9.patch
+          patch -p1 < $GITHUB_WORKSPACE/this-repo/susfs1.5.5-ksu-4.9.patch
 
       - name: 构建RissuKernelSU
         run: |
@@ -105,7 +105,7 @@ jobs:
               cp out/arch/arm64/boot/dtbo.img $GITHUB_WORKSPACE/AnyKernel3/
           fi
           
-          zip -r $GITHUB_WORKSPACE/4.9.337-RissuKernelSU-susfs1.5.5.zip $GITHUB_WORKSPACE/AnyKernel3/*
+          zip -r $GITHUB_WORKSPACE/4.9.337-RissuKernelSU1.0.3-susfs1.5.5.zip $GITHUB_WORKSPACE/AnyKernel3/*
           cd $GITHUB_WORKSPACE
           
       - name: 同步内核源码
@@ -121,7 +121,7 @@ jobs:
           curl -LSs "https://raw.githubusercontent.com/rifsxd/KernelSU-Next/next-susfs/kernel/setup.sh" | bash -s next-susfs
           cp $GITHUB_WORKSPACE/this-repo/dipper_defconfig arch/arm64/configs/
           cp $GITHUB_WORKSPACE/this-repo/susfs_files/* ./ -r
-          patch -p1 < $GITHUB_WORKSPACE/this-repo/0001-susfs1.5.5-ksu-4.9.patch
+          patch -p1 < $GITHUB_WORKSPACE/this-repo/susfs1.5.5-ksu-4.9.patch
           patch -p1 < $GITHUB_WORKSPACE/this-repo/sucompat.c.diff
 
       - name: 构建KernelSUNext
@@ -135,13 +135,36 @@ jobs:
               cp out/arch/arm64/boot/dtbo.img $GITHUB_WORKSPACE/AnyKernel3/
           fi
           
-          zip -r $GITHUB_WORKSPACE/4.9.337-KernelSUNext-susfs1.5.5.zip $GITHUB_WORKSPACE/AnyKernel3/*
+          zip -r $GITHUB_WORKSPACE/4.9.337-KernelSUNext1.0.3-susfs1.5.5.zip $GITHUB_WORKSPACE/AnyKernel3/*
 
-#       - name: 上传输出文件
-#         uses: actions/upload-artifact@v4
-#         with:
-#           name: boot
-#           path: AnyKernel3-master/*
+      - name: 同步内核源码
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.kernel_repository }}
+          ref: ${{ env.kernel_branch }}
+          path: kernel
+
+      - name: 设置 KernelSU
+        run: |
+          cd $GITHUB_WORKSPACE/kernel
+          curl -LSs "https://raw.githubusercontent.com/rifsxd/KernelSU-Next/next-susfs/kernel/setup.sh" | bash -s next-susfs
+          cp $GITHUB_WORKSPACE/this-repo/dipper_defconfig arch/arm64/configs/
+          cp $GITHUB_WORKSPACE/this-repo/susfs_files/* ./ -r
+          patch -p1 < $GITHUB_WORKSPACE/this-repo/susfs1.5.5-ksu-4.9.patch
+          patch -p1 < $GITHUB_WORKSPACE/this-repo/susfs-ksu0.9.5.patch
+
+      - name: 构建KernelSU
+        run: |
+          cd $GITHUB_WORKSPACE/kernel
+          make $flags dipper_defconfig
+          make $flags -j$(nproc --all) 1> /dev/null
+
+          cp out/arch/arm64/boot/Image.gz-dtb $GITHUB_WORKSPACE/AnyKernel3/
+          if [ -f out/arch/arm64/boot/dtbo.img ]; then
+              cp out/arch/arm64/boot/dtbo.img $GITHUB_WORKSPACE/AnyKernel3/
+          fi
+          
+          zip -r $GITHUB_WORKSPACE/4.9.337-KernelSU0.9.5-susfs1.5.5.zip $GITHUB_WORKSPACE/AnyKernel3/*
 
       - name: Release
         uses: softprops/action-gh-release@v2
@@ -153,5 +176,6 @@ jobs:
             Branch: ${{ env.kernel_branch }}
             
           files: |
-            4.9.337-RissuKernelSU-susfs1.5.5.zip
-            4.9.337-KernelSUNext-susfs1.5.5.zip
+            4.9.337-RissuKernelSU1.0.3-susfs1.5.5.zip
+            4.9.337-KernelSUNext1.0.3-susfs1.5.5.zip
+            4.9.337-KernelSU0.9.5-susfs1.5.5.zip 
