@@ -105,7 +105,7 @@ jobs:
               cp out/arch/arm64/boot/dtbo.img $GITHUB_WORKSPACE/AnyKernel3/
           fi
           
-          zip -r $GITHUB_WORKSPACE/4.9-RissuKernelSU-susfs1.5.5.zip $GITHUB_WORKSPACE/AnyKernel3/*
+          zip -r $GITHUB_WORKSPACE/4.9.337-RissuKernelSU-susfs1.5.5.zip $GITHUB_WORKSPACE/AnyKernel3/*
           cd $GITHUB_WORKSPACE
           
       - name: 同步内核源码
@@ -135,15 +135,13 @@ jobs:
               cp out/arch/arm64/boot/dtbo.img $GITHUB_WORKSPACE/AnyKernel3/
           fi
           
-          zip -r $GITHUB_WORKSPACE/4.9-KernelSUNext-susfs1.5.5.zip $GITHUB_WORKSPACE/AnyKernel3/*
+          zip -r $GITHUB_WORKSPACE/4.9.337-KernelSUNext-susfs1.5.5.zip $GITHUB_WORKSPACE/AnyKernel3/*
 
 #       - name: 上传输出文件
 #         uses: actions/upload-artifact@v4
 #         with:
 #           name: boot
 #           path: AnyKernel3-master/*
-      - name: 列出工作区文件
-        run: ls -la $GITHUB_WORKSPACE
 
       - name: Release
         uses: softprops/action-gh-release@v2
@@ -155,5 +153,5 @@ jobs:
             Branch: ${{ env.kernel_branch }}
             
           files: |
-            4.9-RissuKernelSU-susfs1.5.5.zip
-            4.9-KernelSUNext-susfs1.5.5.zip
+            4.9.337-RissuKernelSU-susfs1.5.5.zip
+            4.9.337-KernelSUNext-susfs1.5.5.zip
