@@ -3,6 +3,8 @@ SETUP_SCRIPT="$2"
 BRANCH="$3"
 PATCHES="$4"
 
+export flags="O=out ARCH=arm64 LLVM=1 LLVM_IAS=1 CROSS_COMPILE=aarch64-linux-gnu- CROSS_COMPILE_ARM32=arm-linux-gnueabi-"
+
 cd $GITHUB_WORKSPACE/kernel
 curl -LSs "$SETUP_SCRIPT" | bash -s "$BRANCH"
 
@@ -18,8 +20,8 @@ fi
 
 git add . && git commit -m "clean working tree"
 
-make ${{ env.flags }} dipper_defconfig
-make ${{ env.flags }} -j$(nproc --all) 1> /dev/null
+make $flags dipper_defconfig
+make $flags -j$(nproc --all) 1> /dev/null
 
 cp out/arch/arm64/boot/Image.gz-dtb $GITHUB_WORKSPACE/AnyKernel3
 if [ -f out/arch/arm64/boot/dtbo.img ]; then
