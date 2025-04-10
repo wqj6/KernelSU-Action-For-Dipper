@@ -93,7 +93,7 @@ jobs:
 
       - name: 构建KernelSU
         shell: bash
-        run: build.sh "4.9.337-KernelSU0.9.5-susfs1.5.5" "https://raw.githubusercontent.com/tiann/KernelSU/next-susfs/kernel/setup.sh" "v0.9.5" "susfs1.5.5-ksu-4.9.patch susfs-ksu0.9.5.patch"
+        run: build.sh "4.9.337-KernelSU0.9.5-susfs1.5.5" "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" "v0.9.5" "susfs1.5.5-ksu-4.9.patch susfs-ksu0.9.5.patch"
 
       - name: Release
         uses: softprops/action-gh-release@v2
