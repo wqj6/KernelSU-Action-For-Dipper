@@ -59,6 +59,7 @@ jobs:
         run: |
           git config --global user.name "GitHub Actions"
           git config --global user.email "actions@github.com"
+          chmod 777 $GITHUB_WORKSPACE/this-repo/bin/build.sh
           echo PATH=$GITHUB_WORKSPACE/this-repo/bin:$GITHUB_WORKSPACE/aosp-clang/bin:$PATH | tee -a $GITHUB_ENV
 
       - name: 同步内核源码
