@@ -71,7 +71,7 @@ jobs:
 
       - name: 构建RissuKernelSU
         shell: bash
-        run: build.sh "4.9.337-RissuKernelSU1.0.3-susfs1.5.5" "https://raw.githubusercontent.com/rsuntk/KernelSU/main/kernel/setup.sh" "susfs-v1.5.5" ""
+        run: build.sh "4.9.337-RissuKernelSU1.0.3-susfs1.5.5" "https://raw.githubusercontent.com/rsuntk/KernelSU/main/kernel/setup.sh" "susfs-v1.5.5" "susfs1.5.5-ksu-4.9.patch"
 
       - name: 同步内核源码
         uses: actions/checkout@v4
