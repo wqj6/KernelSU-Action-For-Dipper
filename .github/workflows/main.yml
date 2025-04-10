@@ -5,8 +5,9 @@ env:
   kernel_branch: lineage-22.1
   device: dipper
   clang_version: r365631c
+  flags: "O=out ARCH=arm64 LLVM=1 LLVM_IAS=1 CROSS_COMPILE=aarch64-linux-gnu- CROSS_COMPILE_ARM32=arm-linux-gnueabi-"
 
-on: workflow_dispatch 
+on: workflow_dispatch
 
 jobs:
   Build:
@@ -19,7 +20,7 @@ jobs:
         run: |
           sudo apt update
           sudo apt install -y binutils-arm-linux-gnueabi binutils-aarch64-linux-gnu
-      
+
       - name: "AOSP-Clang: Restore"
         id: aosp_clang_restore
         uses: actions/cache/restore@v4
@@ -32,7 +33,7 @@ jobs:
         if: steps.aosp_clang_restore.outputs.cache-hit != 'true'
         run: |
           mkdir aosp-clang
-          curl -L https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/heads/android11-release/clang-r365631c.tar.gz | tar xz -C /home/runner/aosp-clang
+          curl -L https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/heads/android11-release/clang-r365631c.tar.gz | tar xz -C $GITHUB_WORKSPACE/aosp-clang
 
       - name: "AOSP-Clang: Save"
         id: aosp_clang_save
@@ -53,93 +54,71 @@ jobs:
         run: |
           git config --global user.name "GitHub Actions"
           git config --global user.email "actions@github.com"
-          echo flags="O=out ARCH=arm64 LLVM=1 LLVM_IAS=1 CROSS_COMPILE=aarch64-linux-gnu- CROSS_COMPILE_ARM32=arm-linux-gnueabi-" | tee -a $GITHUB_ENV
           echo PATH=$GITHUB_WORKSPACE/aosp-clang/bin:$PATH | tee -a $GITHUB_ENV
-          cat >AnyKernel3/anykernel.sh <<EOF
-          properties() { '
-          kernel.string=$kernel_repository $kernel_branch for $device
-          do.devicecheck=1
-          do.modules=0
-          do.cleanup=1
-          do.cleanuponabort=1
-          device.name1=$device
-          '; }
-
-          block=auto
-          is_slot_device=auto
-          ramdisk_compression=auto
-          patch_vbmeta_flag=auto
-
-          . tools/ak3-core.sh
-          split_boot
-          flash_boot
-          EOF
 
       - name: 同步本仓库
         uses: actions/checkout@v4
         with:
           path: this-repo
 
+      - name: Define build_kernel function
+        shell: bash
+        run: |
+          build_kernel() {
+            KERNEL_NAME="$1"
+            SETUP_SCRIPT="$2"
+            BRANCH="$3"
+            PATCHES="$4"
+
+            cd $GITHUB_WORKSPACE/kernel
+            curl -LSs "$SETUP_SCRIPT" | bash -s "$BRANCH"
+
+            cp $GITHUB_WORKSPACE/this-repo/dipper_defconfig arch/arm64/configs/
+            cp $GITHUB_WORKSPACE/this-repo/susfs_files/* ./ -r
+
+            if [ -n "$PATCHES" ]; then
+              IFS=' ' read -r -a patch_array <<< "$PATCHES"
+              for patch_file in "${patch_array[@]}"; do
+                patch -p1 < "$GITHUB_WORKSPACE/this-repo/$patch_file"
+              done
+            fi
+
+            git add . && git commit -m "clean working tree"
+
+            make ${{ env.flags }} dipper_defconfig
+            make ${{ env.flags }} -j$(nproc --all) 1> /dev/null
+
+            cp out/arch/arm64/boot/Image.gz-dtb $GITHUB_WORKSPACE/AnyKernel3
+            if [ -f out/arch/arm64/boot/dtbo.img ]; then
+              cp out/arch/arm64/boot/dtbo.img $GITHUB_WORKSPACE/AnyKernel3
+            fi
+
+            zip -r $GITHUB_WORKSPACE/"$KERNEL_NAME".zip $GITHUB_WORKSPACE/AnyKernel3/*
+            cd $GITHUB_WORKSPACE
+          }
+          export -f build_kernel
+
       - name: 同步内核源码
         uses: actions/checkout@v4
         with:
           repository: ${{ env.kernel_repository }}
           ref: ${{ env.kernel_branch }}
           path: kernel
-
-      - name: 设置 RissuKernelSU
-        run: |
-          cd $GITHUB_WORKSPACE/kernel
-          curl -LSs "https://raw.githubusercontent.com/rsuntk/KernelSU/main/kernel/setup.sh" | bash -s susfs-v1.5.5
-          cp $GITHUB_WORKSPACE/this-repo/dipper_defconfig arch/arm64/configs/
-          cp $GITHUB_WORKSPACE/this-repo/susfs_files/* ./ -r
-          patch -p1 < $GITHUB_WORKSPACE/this-repo/susfs1.5.5-ksu-4.9.patch
-          git add . && git commit -m "clean working tree"
 
       - name: 构建RissuKernelSU
-        run: |
-          cd $GITHUB_WORKSPACE/kernel
-          
-          make $flags dipper_defconfig
-          make $flags -j$(nproc --all) 1> /dev/null
+        shell: bash
+        run: build_kernel "4.9.337-RissuKernelSU1.0.3-susfs1.5.5" "https://raw.githubusercontent.com/rsuntk/KernelSU/main/kernel/setup.sh" "susfs-v1.5.5" ""
 
-          cp out/arch/arm64/boot/Image.gz-dtb $GITHUB_WORKSPACE/AnyKernel3/
-          if [ -f out/arch/arm64/boot/dtbo.img ]; then
-              cp out/arch/arm64/boot/dtbo.img $GITHUB_WORKSPACE/AnyKernel3/
-          fi
-          
-          zip -r $GITHUB_WORKSPACE/4.9.337-RissuKernelSU1.0.3-susfs1.5.5.zip $GITHUB_WORKSPACE/AnyKernel3/*
-          cd $GITHUB_WORKSPACE
-          
       - name: 同步内核源码
         uses: actions/checkout@v4
         with:
           repository: ${{ env.kernel_repository }}
           ref: ${{ env.kernel_branch }}
           path: kernel
-
-      - name: 设置 KernelSUNext
-        run: |
-          cd $GITHUB_WORKSPACE/kernel
-          curl -LSs "https://raw.githubusercontent.com/rifsxd/KernelSU-Next/next-susfs/kernel/setup.sh" | bash -s next-susfs
-          cp $GITHUB_WORKSPACE/this-repo/dipper_defconfig arch/arm64/configs/
-          cp $GITHUB_WORKSPACE/this-repo/susfs_files/* ./ -r
-          patch -p1 < $GITHUB_WORKSPACE/this-repo/susfs1.5.5-ksu-4.9.patch
-          patch -p1 < $GITHUB_WORKSPACE/this-repo/sucompat.c.diff
-          git add . && git commit -m "clean working tree"
 
       - name: 构建KernelSUNext
-        run: |
-          cd $GITHUB_WORKSPACE/kernel
-          make $flags dipper_defconfig
-          make $flags -j$(nproc --all) 1> /dev/null
-
-          cp out/arch/arm64/boot/Image.gz-dtb $GITHUB_WORKSPACE/AnyKernel3/
-          if [ -f out/arch/arm64/boot/dtbo.img ]; then
-              cp out/arch/arm64/boot/dtbo.img $GITHUB_WORKSPACE/AnyKernel3/
-          fi
-          
-          zip -r $GITHUB_WORKSPACE/4.9.337-KernelSUNext1.0.3-susfs1.5.5.zip $GITHUB_WORKSPACE/AnyKernel3/*
+        shell: bash
+        run: build_kernel "4.9.337-KernelSUNext1.0.3-susfs1.5.5" "https://raw.githubusercontent.com/rifsxd/KernelSU-Next/next-susfs/kernel/setup.sh" "next-susfs" "susfs1.5.5-ksu-4.9.patch sucompat.c.diff"
 
       - name: 同步内核源码
         uses: actions/checkout@v4
@@ -148,39 +127,20 @@ jobs:
           ref: ${{ env.kernel_branch }}
           path: kernel
 
-      - name: 设置 KernelSU
-        run: |
-          cd $GITHUB_WORKSPACE/kernel
-          curl -LSs "https://raw.githubusercontent.com/rifsxd/KernelSU-Next/next-susfs/kernel/setup.sh" | bash -s next-susfs
-          cp $GITHUB_WORKSPACE/this-repo/dipper_defconfig arch/arm64/configs/
-          cp $GITHUB_WORKSPACE/this-repo/susfs_files/* ./ -r
-          patch -p1 < $GITHUB_WORKSPACE/this-repo/susfs1.5.5-ksu-4.9.patch
-          patch -p1 < $GITHUB_WORKSPACE/this-repo/susfs-ksu0.9.5.patch
-          git add . && git commit -m "clean working tree"
-
       - name: 构建KernelSU
-        run: |
-          cd $GITHUB_WORKSPACE/kernel
-          make $flags dipper_defconfig
-          make $flags -j$(nproc --all) 1> /dev/null
-
-          cp out/arch/arm64/boot/Image.gz-dtb $GITHUB_WORKSPACE/AnyKernel3/
-          if [ -f out/arch/arm64/boot/dtbo.img ]; then
-              cp out/arch/arm64/boot/dtbo.img $GITHUB_WORKSPACE/AnyKernel3/
-          fi
-          
-          zip -r $GITHUB_WORKSPACE/4.9.337-KernelSU0.9.5-susfs1.5.5.zip $GITHUB_WORKSPACE/AnyKernel3/*
+        shell: bash
+        run: build_kernel "4.9.337-KernelSU0.9.5-susfs1.5.5" "https://raw.githubusercontent.com/tiann/KernelSU/next-susfs/kernel/setup.sh" "v0.9.5" "susfs1.5.5-ksu-4.9.patch susfs-ksu0.9.5.patch"
 
       - name: Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: Release
           body: |
-            Device: ${{ env.device }}
-            Kernel: https://github.com/${{ env.kernel_repository }}
-            Branch: ${{ env.kernel_branch }}
-            
+            设备：${{ env.device }}
+            内核仓库：https://github.com/${{ env.kernel_repository }}
+            分支：${{ env.kernel_branch }}
+
           files: |
             4.9.337-RissuKernelSU1.0.3-susfs1.5.5.zip
             4.9.337-KernelSUNext1.0.3-susfs1.5.5.zip
-            4.9.337-KernelSU0.9.5-susfs1.5.5.zip 
+            4.9.337-KernelSU0.9.5-susfs1.5.5.zip
