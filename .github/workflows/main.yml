@@ -50,53 +50,16 @@ jobs:
           ref: master
           path: AnyKernel3
 
-      - name: "Env: Setup"
-        run: |
-          git config --global user.name "GitHub Actions"
-          git config --global user.email "actions@github.com"
-          echo PATH=$GITHUB_WORKSPACE/aosp-clang/bin:$PATH | tee -a $GITHUB_ENV
-
       - name: 同步本仓库
         uses: actions/checkout@v4
         with:
           path: this-repo
 
-      - name: Define build_kernel function
-        shell: bash
+      - name: "Env: Setup"
         run: |
-          build_kernel() {
-            KERNEL_NAME="$1"
-            SETUP_SCRIPT="$2"
-            BRANCH="$3"
-            PATCHES="$4"
-
-            cd $GITHUB_WORKSPACE/kernel
-            curl -LSs "$SETUP_SCRIPT" | bash -s "$BRANCH"
-
-            cp $GITHUB_WORKSPACE/this-repo/dipper_defconfig arch/arm64/configs/
-            cp $GITHUB_WORKSPACE/this-repo/susfs_files/* ./ -r
-
-            if [ -n "$PATCHES" ]; then
-              IFS=' ' read -r -a patch_array <<< "$PATCHES"
-              for patch_file in "${patch_array[@]}"; do
-                patch -p1 < "$GITHUB_WORKSPACE/this-repo/$patch_file"
-              done
-            fi
-
-            git add . && git commit -m "clean working tree"
-
-            make ${{ env.flags }} dipper_defconfig
-            make ${{ env.flags }} -j$(nproc --all) 1> /dev/null
-
-            cp out/arch/arm64/boot/Image.gz-dtb $GITHUB_WORKSPACE/AnyKernel3
-            if [ -f out/arch/arm64/boot/dtbo.img ]; then
-              cp out/arch/arm64/boot/dtbo.img $GITHUB_WORKSPACE/AnyKernel3
-            fi
-
-            zip -r $GITHUB_WORKSPACE/"$KERNEL_NAME".zip $GITHUB_WORKSPACE/AnyKernel3/*
-            cd $GITHUB_WORKSPACE
-          }
-          export -f build_kernel
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+          echo PATH=$GITHUB_WORKSPACE/this-repo/bin:$GITHUB_WORKSPACE/aosp-clang/bin:$PATH | tee -a $GITHUB_ENV
 
       - name: 同步内核源码
         uses: actions/checkout@v4
@@ -107,7 +70,7 @@ jobs:
 
       - name: 构建RissuKernelSU
         shell: bash
-        run: build_kernel "4.9.337-RissuKernelSU1.0.3-susfs1.5.5" "https://raw.githubusercontent.com/rsuntk/KernelSU/main/kernel/setup.sh" "susfs-v1.5.5" ""
+        run: build.sh "4.9.337-RissuKernelSU1.0.3-susfs1.5.5" "https://raw.githubusercontent.com/rsuntk/KernelSU/main/kernel/setup.sh" "susfs-v1.5.5" ""
 
       - name: 同步内核源码
         uses: actions/checkout@v4
@@ -118,7 +81,7 @@ jobs:
 
       - name: 构建KernelSUNext
         shell: bash
-        run: build_kernel "4.9.337-KernelSUNext1.0.3-susfs1.5.5" "https://raw.githubusercontent.com/rifsxd/KernelSU-Next/next-susfs/kernel/setup.sh" "next-susfs" "susfs1.5.5-ksu-4.9.patch sucompat.c.diff"
+        run: build.sh "4.9.337-KernelSUNext1.0.3-susfs1.5.5" "https://raw.githubusercontent.com/rifsxd/KernelSU-Next/next-susfs/kernel/setup.sh" "next-susfs" "susfs1.5.5-ksu-4.9.patch sucompat.c.diff"
 
       - name: 同步内核源码
         uses: actions/checkout@v4
@@ -129,7 +92,7 @@ jobs:
 
       - name: 构建KernelSU
         shell: bash
-        run: build_kernel "4.9.337-KernelSU0.9.5-susfs1.5.5" "https://raw.githubusercontent.com/tiann/KernelSU/next-susfs/kernel/setup.sh" "v0.9.5" "susfs1.5.5-ksu-4.9.patch susfs-ksu0.9.5.patch"
+        run: build.sh "4.9.337-KernelSU0.9.5-susfs1.5.5" "https://raw.githubusercontent.com/tiann/KernelSU/next-susfs/kernel/setup.sh" "v0.9.5" "susfs1.5.5-ksu-4.9.patch susfs-ksu0.9.5.patch"
 
       - name: Release
         uses: softprops/action-gh-release@v2
