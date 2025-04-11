@@ -34,7 +34,7 @@ jobs:
           path: kernel
       - name: 压缩
         run: |
-          zip -r kernel.zip kernel/
+          zip -r chopin-kernel-source.zip kernel/
       - name: 上传
         uses: softprops/action-gh-release@v2
         with:
