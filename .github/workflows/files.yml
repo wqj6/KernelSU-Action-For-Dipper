@@ -3,43 +3,42 @@ name: 获取文件
 on: workflow_dispatch 
 
 jobs:
-  #Download:
-  #  name: 下载
-  #  runs-on: ubuntu-latest
-  #  permissions:
-  #    contents: write
-  #  steps:
-  #    - name: 下载
-  #      run: curl https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/heads/android11-release/clang-r365631c.tar.gz -o clang-r365631c.tar.gz
-
-  #    - name: 上传
-  #      uses: softprops/action-gh-release@v2
-  #      with:
-  #        tag_name: GetClang
-  #        body: |
-          
-  #        files: |
-  #          clang-r365631c.tar.gz
-  Kernel-Source:
-    name: Do
+  Download:
+    name: 下载
     runs-on: ubuntu-latest
     permissions:
-      contents: write 
+      contents: write
     steps:
-      - name: 同步内核源码
-        uses: actions/checkout@v4
-        with:
-          repository: MiCode/Xiaomi_Kernel_OpenSource
-          ref: chopin-r-oss
-          path: kernel
-      - name: 压缩
-        run: |
-          zip -r chopin-kernel-source.zip kernel/
+      - name: 下载
+        run: curl https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9/+archive/refs/tags/android-12.1.0_r27.tar.gz -o gcc.tar.gz
       - name: 上传
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: KernelSource 
+          tag_name: GetClang
           body: |
           
           files: |
-            chopin-kernel-source.zip
+            gcc.tar.gz
+  #Kernel-Source:
+  #  name: Do
+  #  runs-on: ubuntu-latest
+  #  permissions:
+  #    contents: write 
+  #  steps:
+  #    - name: 同步内核源码
+  #      uses: actions/checkout@v4
+  #      with:
+  #        repository: MiCode/Xiaomi_Kernel_OpenSource
+  #        ref: chopin-r-oss
+  #        path: kernel
+  #    - name: 压缩
+  #      run: |
+  #        zip -r chopin-kernel-source.zip kernel/
+  #    - name: 上传
+  #      uses: softprops/action-gh-release@v2
+  #      with:
+  #        tag_name: KernelSource 
+  #        body: |
+          
+  #        files: |
+  #          chopin-kernel-source.zip
