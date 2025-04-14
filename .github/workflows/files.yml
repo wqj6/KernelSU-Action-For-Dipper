@@ -10,7 +10,7 @@ jobs:
       contents: write
     steps:
       - name: 下载
-        run: curl https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9/+archive/refs/tags/android-12.1.0_r27.tar.gz -o gcc.tar.gz
+        run: curl https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/heads/emu-29.0-release/clang-r353983c.tar.gz -o file.tar.gz
       - name: 上传
         uses: softprops/action-gh-release@v2
         with:
@@ -18,7 +18,7 @@ jobs:
           body: |
           
           files: |
-            gcc.tar.gz
+            file.tar.gz
   #Kernel-Source:
   #  name: Do
   #  runs-on: ubuntu-latest
